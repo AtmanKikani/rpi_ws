@@ -10,7 +10,7 @@ def main():
     pub = rospy.Publisher("mira/heading", Int32, queue_size=10)
     rate = rospy.Rate(10)
 
-    serial_port = rospy.get_param("~serial_port", "/dev/Pixhawk")
+    serial_port = rospy.get_param("~serial_port", "/dev/Mega")
     serial_baud = rospy.get_param("~serial_baud", 115200)
     ser = serial.Serial(serial_port, serial_baud)
 

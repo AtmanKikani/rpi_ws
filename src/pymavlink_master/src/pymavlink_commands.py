@@ -162,7 +162,7 @@ if __name__ == "__main__":
         "-p",
         "--port",
         dest="port_addr",
-        default="/dev/ttyACM0",
+        default="/dev/Pixhawk",
         help="Pass Pixhawk Port Address",
         metavar="VAR",
     )
