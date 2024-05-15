@@ -178,25 +178,4 @@ if __name__ == "__main__":
     obj = Basic(options.port_addr, options.auv_mode)
 
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_HEARTBEAT, 2000)
-    obj.request_message_interval(
-        mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100
-    )
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_AHRS2, 100)
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_PRESSURE2, 100)
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_VFR_HUD, 100)
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_IMU2, 100)
-
-    while not rospy.is_shutdown():
-        obj.actuate()
-        try:
-            msg_imu = obj.master.recv_match(type="SCALED_IMU2", blocking=True)
-            msg_attitude = obj.master.recv_match(
-                type="ATTITUDE_QUATERNION", blocking=True
-            )
-            msg_vfr_hud = obj.master.recv_match(type="VFR_HUD", blocking=True)
-            msg_depth = obj.master.recv_match(type="SCALED_PRESSURE2", blocking=True)
-            obj.telem_publish_func(msg_imu, msg_attitude, msg_vfr_hud, msg_depth)
-        except Exception as e:
-            rospy.logwarn(f"Error receiving message: {e}")
-
     rospy.spin()
