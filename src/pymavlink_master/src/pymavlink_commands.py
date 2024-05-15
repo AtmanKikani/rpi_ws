@@ -133,7 +133,7 @@ class Basic:
         self.telem_msg.imu_gyro_z=imu_msg.zgyro
         self.telem_msg.imu_gyro_compass_x=imu_msg.xmag
         self.telem_msg.imu_gyro_compass_y=imu_msg.ymag
-        self.telem_msg.imu_gyro_compass_z=imu_msg.zmag
+        #self.telem_msg.imu_gyro_compass_z=vfr_hud_msg.yaw
         self.telem_msg.q1=attitude_msg.q1
         self.telem_msg.q2=attitude_msg.q2
         self.telem_msg.q3=attitude_msg.q3
@@ -165,20 +165,26 @@ if __name__ == "__main__":
 
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_HEARTBEAT, 2000)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100)
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_IMU, 100)
+    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_AHRS2, 100)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_PRESSURE2, 100)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_VFR_HUD,100)
-
+    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_IMU2,100)
+    #obj.master.mav.command_long_send(obj.master.target_system, obj.master.target_component, mavutil.mavlink.MAV_FRAME_LOCAL_NED, 10, 0, -10, 0, 0, 0, 0, 0)
     while not rospy.is_shutdown():
+        #print(obj.master.attitude)
         obj.actuate()
         try:  
-            msg_imu = obj.master.recv_match(type='SCALED_IMU',blocking=True)
+            msg_imu = obj.master.recv_match(type='SCALED_IMU2',blocking=True)
             msg_attitude = obj.master.recv_match(type='ATTITUDE_QUATERNION',blocking=True)
             msg_vfr_hud = obj.master.recv_match(type='VFR_HUD',blocking=True)
             msg_depth = obj.master.recv_match(type='SCALED_PRESSURE2',blocking=True)
+            #msg_d = obj.master.recv_match(type='AHRS3',blocking=True)
+            #print(msg_d)
         except:
-            print('No message recieved')
+            pass
         obj.telem_publish_func(msg_imu,msg_attitude,msg_vfr_hud,msg_depth)
+            #print('No message recieved')
+        #obj.telem_publish_func(msg_imu,msg_attitude,msg_vfr_hud,msg_depth)
 
         
         

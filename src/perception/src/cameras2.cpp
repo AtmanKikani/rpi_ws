@@ -7,7 +7,7 @@
 #include <image_transport/image_transport.h>
 
 cv::VideoCapture cap1(0);
-cv::VideoCapture cap2(3);
+cv::VideoCapture cap2(1);
 
 
 void launch_cameras() {

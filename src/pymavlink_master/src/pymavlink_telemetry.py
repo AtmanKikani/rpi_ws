@@ -33,7 +33,7 @@ def request_message_interval(message_id: int, frequency_hz: float):
 # request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_IMU, 10)
 # request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_PRESSURE2, 10)
 
-request_message_interval(87, 10)
+request_message_interval(24, 10)
 
 
 
@@ -63,7 +63,7 @@ request_message_interval(87, 10)
 
 while True:  
     try:  
-        msg = connection.recv_match(type='GLOBAL_POSITION_INT',blocking=True)
+        msg = connection.recv_match(type='GPS_RAW_INT',blocking=True)
         # msg_imu = connection.recv_match(type='SCALED_IMU',blocking=True)
         # msg_attitude = connection.recv_match(type='ATTITUDE_QUATERNION',blocking=True)
         # rospy.init_node('PyMavMasterNode')
