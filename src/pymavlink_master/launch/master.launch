@@ -1,0 +1,4 @@
+<launch>
+    <node name="pymavlink_commands" pkg="pymavlink_master" type="pymavlink_commands.py" output="screen" />
+    <node name="yaw_publisher" pkg="pymavlink_master" type="yaw_publisher.py" output="screen" />
+</launch>
