@@ -2,8 +2,9 @@
 from optparse import OptionParser
 
 import rospy
-from custom_msgs.msg import commands, telemetry
 from pymavlink import mavutil
+
+from custom_msgs.msg import commands, telemetry
 
 # Constants for channel mappings
 # 1   Pitch
@@ -43,7 +44,7 @@ class PixhawkMaster:
         self.master.wait_heartbeat()  # Wait for the heartbeat from the Pixhawk
         self.telem_msg = telemetry()  # Initialize telemetry message
 
-    def __callback(self, msg):
+    def __callback__(self, msg):
         """
         Callback function to handle incoming commands and update RC channel values.
         Also handles arming/disarming and mode switching.
