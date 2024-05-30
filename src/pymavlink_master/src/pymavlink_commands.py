@@ -39,10 +39,16 @@ class PixhawkMaster:
         self.telemetry_pub = rospy.Publisher(
             "/master/telemetry", telemetry, queue_size=1
         )
+        self.thruster_subs_rov = rospy.Subscriber(
+            "/rov/commands", commands, self.rov_callback, queue_size=1
+        )
 
         self.channel_ary = [1500] * 8  # Initialize channel values array
         self.master.wait_heartbeat()  # Wait for the heartbeat from the Pixhawk
         self.telem_msg = telemetry()  # Initialize telemetry message
+
+    def rov_callback(self, msg):
+        pass
 
     def __callback__(self, msg):
         """
