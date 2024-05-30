@@ -1,9 +1,7 @@
 #!/usr/bin/python3
 from optparse import OptionParser
-
 import rospy
 from pymavlink import mavutil
-
 from custom_msgs.msg import commands, telemetry
 
 # Constants for channel mappings
@@ -188,10 +186,11 @@ class PixhawkMaster:
         else:
             rospy.logerr("Command Failed")
 
-    def telem_publish_func(self, imu_msg, attitude_msg, vfr_hud_msg, depth_msg):
+    def telem_publish_func(self, sys_status_msg, imu_msg, attitude_msg, vfr_hud_msg, depth_msg):
         """
         Publish telemetry data based on received MAVLink messages.
         """
+        self.telem_msg.battery_voltage = (sys_status_msg.voltage_battery)/1000
         self.telem_msg.timestamp = imu_msg.time_boot_ms
         self.telem_msg.internal_pressure = vfr_hud_msg.alt
         self.telem_msg.external_pressure = depth_msg.press_abs
@@ -209,7 +208,12 @@ class PixhawkMaster:
         self.telem_msg.pitchspeed = attitude_msg.pitchspeed
         self.telem_msg.yawspeed = attitude_msg.yawspeed
 
+        if((self.telem_msg.battery_voltage)<15):
+            rospy.logwarn(f"Battery Critically Low: {self.telem_msg.battery_voltage}V")
+
         self.telemetry_pub.publish(self.telem_msg)
+
+
 
 
 if __name__ == "__main__":
@@ -240,10 +244,9 @@ if __name__ == "__main__":
     obj = PixhawkMaster()
 
     # Request message intervals
-    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_HEARTBEAT, 2000)
-    obj.request_message_interval(
-        mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100
-    )
+    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SYS_STATUS, 100)
+    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_HEARTBEAT, 100)
+    obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE_QUATERNION, 100)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_AHRS2, 100)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_SCALED_PRESSURE2, 100)
     obj.request_message_interval(mavutil.mavlink.MAVLINK_MSG_ID_VFR_HUD, 100)
@@ -254,10 +257,9 @@ if __name__ == "__main__":
         obj.actuate()
         try:
             # Receive MAVLink messages
+            msg_sys_status = obj.master.recv_match(type='SYS_STATUS',blocking=True)
             msg_imu = obj.master.recv_match(type="SCALED_IMU2", blocking=True)
-            msg_attitude = obj.master.recv_match(
-                type="ATTITUDE_QUATERNION", blocking=True
-            )
+            msg_attitude = obj.master.recv_match(type="ATTITUDE_QUATERNION", blocking=True)
             msg_vfr_hud = obj.master.recv_match(type="VFR_HUD", blocking=True)
             msg_depth = obj.master.recv_match(type="SCALED_PRESSURE2", blocking=True)
         except Exception as e:
@@ -265,4 +267,4 @@ if __name__ == "__main__":
             continue
 
         # Publish telemetry data
-        obj.telem_publish_func(msg_imu, msg_attitude, msg_vfr_hud, msg_depth)
+        obj.telem_publish_func(msg_sys_status, msg_imu, msg_attitude, msg_vfr_hud, msg_depth)
