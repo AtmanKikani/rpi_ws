@@ -3,7 +3,7 @@ from optparse import OptionParser
 import rospy
 from pymavlink import mavutil
 from custom_msgs.msg import commands, telemetry
-
+from std_srvs.srv import Empty
 # Constants for channel mappings
 # 1   Pitch
 # 2   Roll
@@ -26,7 +26,7 @@ class PixhawkMaster:
         self.mode = options.auv_mode
         self.pixhawk_port = options.port_addr
         self.arm_state = False
-
+        self.autonomy_switch = False
         # Initialize MAVLink connection
         self.master = mavutil.mavlink_connection(self.pixhawk_port, baud=115200)
 
@@ -37,25 +37,23 @@ class PixhawkMaster:
         self.telemetry_pub = rospy.Publisher(
             "/master/telemetry", telemetry, queue_size=1
         )
-
+        self.thruster_subs_rov = rospy.Subscriber(
+            "/rov/commands", commands, self.rov_callback, queue_size=1
+        )
+        self.autonomy_service = rospy.Service("/mira/switch", Empty, self.service_callback)
         self.channel_ary = [1500] * 8  # Initialize channel values array
         self.master.wait_heartbeat()  # Wait for the heartbeat from the Pixhawk
         self.telem_msg = telemetry()  # Initialize telemetry message
 
-    def __callback__(self, msg):
-        """
-        Callback function to handle incoming commands and update RC channel values.
-        Also handles arming/disarming and mode switching.
-        """
-        self.channel_ary[0] = msg.pitch
-        self.channel_ary[1] = msg.roll
-        self.channel_ary[2] = msg.thrust
-        self.channel_ary[3] = msg.yaw
-        self.channel_ary[4] = msg.forward
-        self.channel_ary[5] = msg.lateral
-        self.channel_ary[6] = msg.servo1
-        self.channel_ary[7] = msg.servo2
+    def service_callback(self, msg):
+        self.autonomy_switch = not self.autonomy_switch
+        if (self.autonomy_switch==True):
+            rospy.loginfo("AUTONOMY MODE")
+        else:
+            rospy.loginfo("ROV MODE")
+        return True
 
+    def rov_callback(self, msg):
         # Handle arming/disarming
         if msg.arm == 1 and self.arm_state == False:
             self.arm()
@@ -64,13 +62,54 @@ class PixhawkMaster:
             self.disarm()
             self.arm_state = False
 
-        # Handle mode switching
-        if self.mode != msg.mode:
-            if self.arm_state == False:
-                self.mode = msg.mode
-                self.mode_switch()
-            else:
-                rospy.logwarn("Disarm Pixhawk to change modes.")
+        if self.autonomy_switch==False:
+            self.channel_ary[0] = msg.pitch
+            self.channel_ary[1] = msg.roll
+            self.channel_ary[2] = msg.thrust
+            self.channel_ary[3] = msg.yaw
+            self.channel_ary[4] = msg.forward
+            self.channel_ary[5] = msg.lateral
+            self.channel_ary[6] = msg.servo1
+            self.channel_ary[7] = msg.servo2
+
+            # Handle mode switching
+            if self.mode != msg.mode:
+                if self.arm_state == False:
+                    self.mode = msg.mode
+                    self.mode_switch()
+                else:
+                    rospy.logwarn("Disarm Pixhawk to change modes.")
+
+    def __callback__(self, msg):
+        """
+        Callback function to handle incoming commands and update RC channel values.
+        Also handles arming/disarming and mode switching.
+        """
+        if self.autonomy_switch==True:
+            self.channel_ary[0] = msg.pitch
+            self.channel_ary[1] = msg.roll
+            self.channel_ary[2] = msg.thrust
+            self.channel_ary[3] = msg.yaw
+            self.channel_ary[4] = msg.forward
+            self.channel_ary[5] = msg.lateral
+            self.channel_ary[6] = msg.servo1
+            self.channel_ary[7] = msg.servo2
+
+            # Handle arming/disarming
+            if msg.arm == 1 and self.arm_state == False:
+                self.arm()
+                self.arm_state = True
+            elif msg.arm == 0 and self.arm_state == True:
+                self.disarm()
+                self.arm_state = False
+
+            # Handle mode switching
+            if self.mode != msg.mode:
+                if self.arm_state == False:
+                    self.mode = msg.mode
+                    self.mode_switch()
+                else:
+                    rospy.logwarn("Disarm Pixhawk to change modes.")
 
     def arm(self):
         """
