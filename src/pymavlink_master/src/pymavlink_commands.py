@@ -209,8 +209,8 @@ class PixhawkMaster:
         self.telem_msg.yawspeed = attitude_msg.yawspeed
 
         if((self.telem_msg.battery_voltage)<15):
-            rospy.logwarn(f"Battery Critically Low: {self.telem_msg.battery_voltage}V")
-
+#            rospy.logwarn(f"Battery Critically Low: {self.telem_msg.battery_voltage}V")
+            pass
         self.telemetry_pub.publish(self.telem_msg)
 
 

@@ -12,7 +12,7 @@ def main():
     """
     rospy.init_node("arduino_yaw_publisher", anonymous=True)
     pub = rospy.Publisher("mira/heading", Int32, queue_size=10)
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(100)
 
     # Parameters for serial port and baud rate
     serial_port = rospy.get_param("~serial_port", "/dev/Mega")
@@ -25,7 +25,7 @@ def main():
     except serial.SerialException as e:
         rospy.logerr(f"Failed to connect to {serial_port} at {serial_baud} baud: {e}")
         return
-
+    line = None
     while not rospy.is_shutdown():
         if ser.in_waiting > 0:
             try:
