@@ -2,7 +2,7 @@
 
 import rospy
 import serial
-from std_msgs.msg import Int32
+from std_msgs.msg import Float32
 
 
 def main():
@@ -11,7 +11,7 @@ def main():
     from an Arduino to a ROS topic.
     """
     rospy.init_node("arduino_yaw_publisher", anonymous=True)
-    pub = rospy.Publisher("mira/heading", Int32, queue_size=10)
+    pub = rospy.Publisher("mira/heading", Float32, queue_size=10)
     rate = rospy.Rate(100)
 
     # Parameters for serial port and baud rate
@@ -30,7 +30,7 @@ def main():
         if ser.in_waiting > 0:
             try:
                 line = ser.readline().decode("utf-8").strip()
-                yaw_value = int(float(line))
+                yaw_value = float(line)
                 pub.publish(yaw_value)
                 rospy.loginfo(f"Published Yaw value: {yaw_value}")
             except ValueError as e:

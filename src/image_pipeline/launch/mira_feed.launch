@@ -9,6 +9,7 @@
       <param name="video_mode" value="mjpeg"/>
     </node>
   </group>
+
   <group ns="camera_front">
     <node pkg="libuvc_camera" type="camera_node" name="cam_front">
       <param name="vendor" value="0x0c45"/>

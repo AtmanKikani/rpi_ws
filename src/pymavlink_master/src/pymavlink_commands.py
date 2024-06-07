@@ -3,7 +3,7 @@ from optparse import OptionParser
 import rospy
 from pymavlink import mavutil
 from custom_msgs.msg import commands, telemetry
-from std_srvs.srv import Empty
+from std_srvs.srv import Empty, EmptyResponse
 # Constants for channel mappings
 # 1   Pitch
 # 2   Roll
@@ -51,16 +51,17 @@ class PixhawkMaster:
             rospy.loginfo("AUTONOMY MODE")
         else:
             rospy.loginfo("ROV MODE")
-        return True
+        return EmptyResponse()
 
     def rov_callback(self, msg):
         # Handle arming/disarming
+        #if self.autonomy_switch==False:
         if msg.arm == 1 and self.arm_state == False:
-            self.arm()
-            self.arm_state = True
+                self.arm()
+                self.arm_state = True
         elif msg.arm == 0 and self.arm_state == True:
-            self.disarm()
-            self.arm_state = False
+                self.disarm()
+                self.arm_state = False
 
         if self.autonomy_switch==False:
             self.channel_ary[0] = msg.pitch
@@ -229,6 +230,7 @@ class PixhawkMaster:
         """
         Publish telemetry data based on received MAVLink messages.
         """
+        self.telem_msg.arm = self.arm_state
         self.telem_msg.battery_voltage = (sys_status_msg.voltage_battery)/1000
         self.telem_msg.timestamp = imu_msg.time_boot_ms
         self.telem_msg.internal_pressure = vfr_hud_msg.alt
