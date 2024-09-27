@@ -34,6 +34,8 @@ RUN apt-get update && \
 
 RUN pip3 install pyserial pymavlink
 
+RUN pip3 install depthai
+
 WORKDIR /tmp
 RUN git clone --depth 1 --branch 4.6.0 https://github.com/opencv/opencv.git && \
     git clone --depth 1 --branch 4.6.0 https://github.com/opencv/opencv_contrib.git
